@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Courses</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .course-list {
+            margin-top: 20px;
+            display: none; /* Initially hide the course list */
+        }
+    </style>
+</head>
+<body>
+
+<h1>Select a Batch to View Courses</h1>
+
+<label for="batch-select">Choose a batch:</label>
+<select id="batch-select" onchange="showCourses()">
+    <option value="">--Select Batch--</option>
+    <option value="0">Batch 20</option>
+    <option value="1">Batch 21</option>
+    <option value="2">Batch 22</option>
+    <option value="3">Batch 23</option>
+</select>
+
+<div id="course-list" class="course-list">
+    <h2>Courses:</h2>
+    <ul id="courses"></ul>
+</div>
+
+<input type="file" id="file-input" accept=".xlsx" onchange="loadFile(event)"/>
+
+<script>
+    let coursesData = [];
+
+    function loadFile(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            coursesData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+            console.log(coursesData); // For debugging
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    function showCourses() {
+        const batchSelect = document.getElementById('batch-select');
+        const selectedBatchIndex = batchSelect.value;
+        const coursesList = document.getElementById('courses');
+        const courseListDiv = document.getElementById('course-list');
+
+        // Clear previous courses
+        coursesList.innerHTML = '';
+
+        if (selectedBatchIndex) {
+            // Populate the course list based on the selected batch
+            const courses = coursesData.map(row => row[selectedBatchIndex]).filter(course => course);
+            courses.forEach(course => {
+                const li = document.createElement('li');
+                li.textContent = course;
+                coursesList.appendChild(li);
+            });
+            courseListDiv.style.display = 'block'; // Show the course list
+        } else {
+            courseListDiv.style.display = 'none'; // Hide the course list if no batch is selected
+        }
+    }
+</script>
+
+</body>
+</html>
